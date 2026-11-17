@@ -9,14 +9,14 @@ import {
 type View = 'overview' | 'process' | 'controls' | 'validation';
 type Inputs = {
   ghi:number; ambient:number; groundwaterTemp:number; tds:number; pvtArea:number;
-  pvtFlow:number; roFeed:number; recovery:number; rejection:number; potableShare:number;
+  pvtFlow:number; pvtTargetOutlet:number; roFeed:number; recovery:number; rejection:number; potableShare:number;
   dni:number; cstArea:number; opticalEfficiency:number; steamEnergy:number;
   turbineWork:number; generatorEfficiency:number; pondArea:number; evaporation:number;
   tankLevel:number; tankCapacity:number; roTempSetpoint:number;
 };
 const defaults:Inputs = {
   ghi:800, ambient:35, groundwaterTemp:24, tds:2500, pvtArea:650,
-  pvtFlow:6, roFeed:4.8, recovery:45, rejection:98.5, potableShare:85,
+  pvtFlow:6, pvtTargetOutlet:40, roFeed:4.8, recovery:45, rejection:98.5, potableShare:85,
   dni:750, cstArea:120, opticalEfficiency:55, steamEnergy:2600,
   turbineWork:300, generatorEfficiency:90, pondArea:400, evaporation:5,
   tankLevel:15, tankCapacity:30, roTempSetpoint:30
@@ -27,10 +27,12 @@ function model(x:Inputs) {
   const heat = x.ghi*x.pvtArea*0.32/1000;
   const mass = Math.max(.01,x.pvtFlow*1000/3600);
   const delta = heat/(mass*4.18);
+  const recommendedPvtFlow = heat*3.6/(4.18*Math.max(2,x.pvtTargetOutlet-x.groundwaterTemp));
   const outlet = x.groundwaterTemp+delta;
   const cellRaw = x.ambient+0.03*x.ghi;
   const cellCooled = cellRaw-clamp(delta*.42,0,14);
   const pv = x.ghi*x.pvtArea*.20/1000*clamp(1-.004*(cellCooled-25),.55,1.08);
+  const roTempGap = Math.max(0,outlet-x.roTempSetpoint);
   const permeate = x.roFeed*x.recovery/100;
   const brine = Math.max(0,x.roFeed-permeate);
   const permeateTds = x.tds*(1-x.rejection/100);
@@ -42,7 +44,7 @@ function model(x:Inputs) {
   const steam = Math.min(potentialSteam,thermalFeed*1000);
   const turbine = steam*x.turbineWork*x.generatorEfficiency/100/3600;
   return {
-    heat,delta,outlet,roFeed:x.roFeed,cellRaw,cellCooled,pv,permeate,brine,permeateTds,brineTds,
+    heat,delta,outlet,roFeed:x.roFeed,recommendedPvtFlow,roTempGap,cellRaw,cellCooled,pv,permeate,brine,permeateTds,brineTds,
     potable,thermalFeed,solarHeat,potentialSteam,steam,turbine,
     brineDaily:brine*24,evapDaily:x.pondArea*x.evaporation/1000,
     tankDelta:x.pvtFlow-x.roFeed,thermalFeedLimited:thermalFeed*1000<potentialSteam
@@ -106,7 +108,7 @@ export default function App() {
 
     {view==='overview'&&<div className="view-stack">
      <div className="metrics-grid">
-      <Metric icon={Thermometer} label="Chaleur récupérée PV/T" value={fmt(r.heat,1)} unit="kWth" foot={'Élévation calculée de l’eau : +'+fmt(r.delta,1)+' °C'} tone="amber"/>
+      <Metric icon={Zap} label="Production électrique PV/T" value={fmt(r.pv,1)} unit="kWe" foot="Estimation sur la surface PV/T active" tone="blue"/><Metric icon={Thermometer} label="Chaleur récupérée PV/T" value={fmt(r.heat,1)} unit="kWth" foot={'Élévation calculée de l’eau : +'+fmt(r.delta,1)+' °C'} tone="amber"/>
       <Metric icon={Droplets} label="Perméat RO estimé" value={fmt(r.permeate,2)} unit="m³/h" foot={fmt(r.brine,2)+' m³/h de concentrat'} tone="cyan"/>
       <Metric icon={Waves} label="Branche eau potable" value={fmt(r.potable,2)} unit="m³/h" foot={fmt(x.potableShare,0)+' % du perméat affecté'} tone="teal"/>
       <Metric icon={Zap} label="Turbine · puissance brute" value={fmt(r.turbine,2)} unit="kWe" foot="Avant déduction des auxiliaires" tone="violet"/>
@@ -125,7 +127,7 @@ export default function App() {
       </div>
       <div className="flow-legend"><span><i className="legend-dot water"/> Eau brute / prétraitée</span><span><i className="legend-dot heat"/> Chaleur récupérée</span><span><i className="legend-dot permeate"/> Perméat</span><span><i className="legend-dot brine"/> Concentrat</span><span><i className="legend-dot control"/> Mesures & consignes</span></div>
      </Card>
-     <div className="bottom-grid">
+     <div className="stream-grid"><div className="stream-card potable-stream"><div className="stream-symbol"><Droplets size={19}/></div><div className="stream-kicker">BRANCHE A · PERMÉAT</div><h3>Eau destinée à l’usage potable</h3><p>Traitement final, reminéralisation éventuelle, désinfection, contrôle analytique et stockage.</p><strong>{fmt(r.potable,2)} m³/h</strong><span>Débit affecté dans le scénario</span></div><div className="stream-card thermal-stream"><div className="stream-symbol"><Sun size={19}/></div><div className="stream-kicker">BRANCHE B · PERMÉAT</div><h3>Production solaire de vapeur</h3><p>Collecteur à concentration, vaporisation, turbine et générateur électrique.</p><strong>{fmt(r.thermalFeed,2)} m³/h</strong><span>Alimentation solaire thermique</span></div><div className="stream-card brine-stream"><div className="stream-symbol"><Beaker size={19}/></div><div className="stream-kicker">CONCENTRAT RO</div><h3>Évaporation solaire</h3><p>Bassins d’évaporation et étude de la cristallisation selon la composition ionique réelle.</p><strong>{fmt(r.brine,2)} m³/h</strong><span>Flux de concentrat estimé</span></div></div>\n     <div className="bottom-grid">
       <Card><div className="card-heading compact"><div><div className="eyebrow">SORTIE OSMOSE INVERSE</div><h2>Répartition du perméat</h2><p>Deux voies indépendantes.</p></div><span className="soft-tag">Calcul simulé</span></div>
        <div className="split-summary"><div><span>Perméat total</span><strong>{fmt(r.permeate,2)} <small>m³/h</small></strong></div><div className="share-donut" style={{background:'conic-gradient(#12a88c '+x.potableShare+'%, #f3b45b 0)'}}><div><strong>{fmt(x.potableShare,0)}%</strong><small>potable</small></div></div></div>
        <div className="bar-row"><span><i className="legend-dot permeate"/> Branche potable</span><b>{fmt(r.potable,2)} m³/h</b></div><div className="progress-track"><i className="teal-fill" style={{width:x.potableShare+'%'}}/></div>
@@ -146,7 +148,7 @@ export default function App() {
        <div className="tank-summary"><div className="tank-shell"><div className="tank-fill" style={{height:clamp(x.tankLevel/x.tankCapacity*100,0,100)+'%'}}/><span>{fmt(x.tankLevel,1)}</span></div><div><strong>{fmt(x.tankLevel/x.tankCapacity*100,0)} %</strong><span>Niveau initial du scénario</span><p>Entrée PV/T : {fmt(x.pvtFlow,1)} m³/h<br/>Sortie RO : {fmt(x.roFeed,1)} m³/h</p><em>Variation théorique : {(r.tankDelta>=0?'+':'')+fmt(r.tankDelta,2)} m³/h</em></div></div>
       </Card>
      </div>
-     <div className="quick-control"><div><div className="eyebrow">AJUSTEMENT RAPIDE</div><strong>Répartition du perméat</strong><p>Modifiez la part réservée à l’eau potable.</p></div><RangeField label="Part du perméat vers l’eau potable" value={x.potableShare} min={0} max={100} unit="%" onChange={v=>change('potableShare',v)}/><button className="link-button" onClick={()=>changeView('controls')}>Tous les paramètres <ArrowUpRight size={15}/></button></div>
+     <Card className="supervision-card"><div className="supervision-head"><div><div className="eyebrow">SUPERVISION INTELLIGENTE · CONCEPT</div><h2>Deux boucles de régulation coordonnées</h2><p>Logique de démonstration pour illustrer les consignes — aucun automate ni capteur réel n’est connecté.</p></div><span className="soft-tag cyan-tag">LOGIQUE PROPOSÉE</span></div><div className="loop-grid"><div className="loop-panel"><div className="loop-label"><span>BOUCLE 01</span><b>Régulation thermique PV/T</b></div><div className="loop-main"><div><small>Débit mesuré / scénario</small><strong>{fmt(x.pvtFlow,1)} <i>m³/h</i></strong></div><ArrowRight size={18}/><div><small>Débit recommandé</small><strong>{fmt(r.recommendedPvtFlow,1)} <i>m³/h</i></strong></div></div><p>La consigne de débit est calculée pour rapprocher la température de sortie PV/T de la cible de {fmt(x.pvtTargetOutlet,1)} °C.</p></div><div className="loop-panel ro-loop"><div className="loop-label"><span>BOUCLE 02</span><b>Alimentation RO & tampon</b></div><div className="loop-main"><div><small>Consigne pompe RO</small><strong>{fmt(x.roFeed,1)} <i>m³/h</i></strong></div><ArrowRight size={18}/><div><small>Équilibre tampon</small><strong>{(r.tankDelta>=0?'+':'')+fmt(r.tankDelta,1)} <i>m³/h</i></strong></div></div><p>Le réservoir absorbe l’écart entre le débit disponible en sortie PV/T et le débit demandé par les membranes.</p><div className="temperature-gap">Écart thermique à corriger avant RO <strong>{fmt(r.roTempGap,1)} °C</strong> <span>Consigne de scénario : {fmt(x.roTempSetpoint,1)} °C</span></div></div></div></Card>\n     <div className="quick-control"><div><div className="eyebrow">AJUSTEMENT RAPIDE</div><strong>Répartition du perméat</strong><p>Modifiez la part réservée à l’eau potable.</p></div><RangeField label="Part du perméat vers l’eau potable" value={x.potableShare} min={0} max={100} unit="%" onChange={v=>change('potableShare',v)}/><button className="link-button" onClick={()=>changeView('controls')}>Tous les paramètres <ArrowUpRight size={15}/></button></div>
     </div>}
 
     {view==='process'&&<div className="view-stack">
@@ -174,7 +176,7 @@ export default function App() {
        <RangeField label="Rayonnement global" value={x.ghi} min={200} max={1100} unit="W/m²" onChange={v=>change('ghi',v)}/><RangeField label="Température ambiante" value={x.ambient} min={10} max={50} unit="°C" onChange={v=>change('ambient',v)}/><RangeField label="Température eau brute" value={x.groundwaterTemp} min={10} max={45} unit="°C" onChange={v=>change('groundwaterTemp',v)}/><RangeField label="Salinité eau brute (TDS)" value={x.tds} min={300} max={10000} step={100} unit="mg/L" info="À remplacer par une analyse laboratoire." onChange={v=>change('tds',v)}/>
       </div></Card>
       <Card className="control-card"><div className="card-heading"><div><div className="eyebrow">02 · PV/T & TAMPON</div><h2>Refroidissement et récupération</h2><p>Surface active et débit du circuit thermique.</p></div><span className="soft-tag amber-tag">PV/T</span></div><div className="range-grid">
-       <RangeField label="Surface active PV/T" value={x.pvtArea} min={50} max={3000} step={10} unit="m²" onChange={v=>change('pvtArea',v)}/><RangeField label="Débit circuit PV/T" value={x.pvtFlow} min={.5} max={30} step={.1} unit="m³/h" onChange={v=>change('pvtFlow',v)}/><RangeField label="Niveau initial tampon" value={x.tankLevel} min={0} max={x.tankCapacity} step={.5} unit="m³" onChange={v=>change('tankLevel',v)}/><RangeField label="Capacité réservoir" value={x.tankCapacity} min={5} max={150} unit="m³" onChange={v=>setX(p=>({...p,tankCapacity:v,tankLevel:Math.min(p.tankLevel,v)}))}/>
+       <RangeField label="Surface active PV/T" value={x.pvtArea} min={50} max={3000} step={10} unit="m²" onChange={v=>change('pvtArea',v)}/><RangeField label="Débit circuit PV/T" value={x.pvtFlow} min={.5} max={30} step={.1} unit="m³/h" onChange={v=>change('pvtFlow',v)}/><RangeField label="Consigne température sortie PV/T" value={x.pvtTargetOutlet} min={25} max={60} step={.5} unit="°C" onChange={v=>change('pvtTargetOutlet',v)}/><RangeField label="Niveau initial tampon" value={x.tankLevel} min={0} max={x.tankCapacity} step={.5} unit="m³" onChange={v=>change('tankLevel',v)}/><RangeField label="Capacité réservoir" value={x.tankCapacity} min={5} max={150} unit="m³" onChange={v=>setX(p=>({...p,tankCapacity:v,tankLevel:Math.min(p.tankLevel,v)}))}/>
       </div></Card>
       <Card className="control-card"><div className="card-heading"><div><div className="eyebrow">03 · OSMOSE INVERSE</div><h2>Alimentation des membranes</h2><p>Débit, taux de récupération et rejet salin supposé.</p></div><span className="soft-tag cyan-tag">RO</span></div><div className="range-grid">
        <RangeField label="Consigne alimentation RO" value={x.roFeed} min={.5} max={30} step={.1} unit="m³/h" onChange={v=>change('roFeed',v)}/><RangeField label="Taux de récupération" value={x.recovery} min={20} max={80} unit="%" onChange={v=>change('recovery',v)}/><RangeField label="Rejet salin membrane (hyp.)" value={x.rejection} min={90} max={99.8} step={.1} unit="%" onChange={v=>change('rejection',v)}/><RangeField label="Consigne température RO" value={x.roTempSetpoint} min={15} max={40} step={.5} unit="°C" info="Consigne de scénario, pas une limite constructeur." onChange={v=>change('roTempSetpoint',v)}/><RangeField label="Perméat vers eau potable" value={x.potableShare} min={50} max={100} unit="%" onChange={v=>change('potableShare',v)}/>
