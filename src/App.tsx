@@ -8,14 +8,14 @@ import {
 
 type View = 'overview' | 'process' | 'controls' | 'validation';
 type Inputs = {
-  ghi:number; ambient:number; groundwaterTemp:number; tds:number; pvtArea:number;
+  ghi:number; ambient:number; groundwaterTemp:number; tds:number; pvtArea:number; thermalRecovery:number; pvEfficiency:number;
   pvtFlow:number; pvtTargetOutlet:number; roFeed:number; recovery:number; rejection:number; potableShare:number;
   dni:number; cstArea:number; opticalEfficiency:number; steamEnergy:number;
   turbineWork:number; generatorEfficiency:number; pondArea:number; evaporation:number;
   tankLevel:number; tankCapacity:number; roTempSetpoint:number;
 };
 const defaults:Inputs = {
-  ghi:800, ambient:35, groundwaterTemp:24, tds:2500, pvtArea:650,
+  ghi:800, ambient:35, groundwaterTemp:24, tds:2500, pvtArea:650, thermalRecovery:32, pvEfficiency:20,
   pvtFlow:6, pvtTargetOutlet:40, roFeed:4.8, recovery:45, rejection:98.5, potableShare:85,
   dni:750, cstArea:120, opticalEfficiency:55, steamEnergy:2600,
   turbineWork:300, generatorEfficiency:90, pondArea:400, evaporation:5,
@@ -24,14 +24,14 @@ const defaults:Inputs = {
 const fmt = (v:number,d=1) => new Intl.NumberFormat('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(Number.isFinite(v)?v:0);
 const clamp = (n:number,a:number,b:number) => Math.min(b,Math.max(a,n));
 function model(x:Inputs) {
-  const heat = x.ghi*x.pvtArea*0.32/1000;
+  const heat = x.ghi*x.pvtArea*x.thermalRecovery/100/1000;
   const mass = Math.max(.01,x.pvtFlow*1000/3600);
   const delta = heat/(mass*4.18);
   const recommendedPvtFlow = heat*3.6/(4.18*Math.max(2,x.pvtTargetOutlet-x.groundwaterTemp));
   const outlet = x.groundwaterTemp+delta;
   const cellRaw = x.ambient+0.03*x.ghi;
   const cellCooled = cellRaw-clamp(delta*.42,0,14);
-  const pv = x.ghi*x.pvtArea*.20/1000*clamp(1-.004*(cellCooled-25),.55,1.08);
+  const pv = x.ghi*x.pvtArea*x.pvEfficiency/100/1000*clamp(1-.004*(cellCooled-25),.55,1.08);
   const roTempGap = Math.max(0,outlet-x.roTempSetpoint);
   const permeate = x.roFeed*x.recovery/100;
   const brine = Math.max(0,x.roFeed-permeate);
@@ -176,7 +176,7 @@ export default function App() {
        <RangeField label="Rayonnement global" value={x.ghi} min={200} max={1100} unit="W/m²" onChange={v=>change('ghi',v)}/><RangeField label="Température ambiante" value={x.ambient} min={10} max={50} unit="°C" onChange={v=>change('ambient',v)}/><RangeField label="Température eau brute" value={x.groundwaterTemp} min={10} max={45} unit="°C" onChange={v=>change('groundwaterTemp',v)}/><RangeField label="Salinité eau brute (TDS)" value={x.tds} min={300} max={10000} step={100} unit="mg/L" info="À remplacer par une analyse laboratoire." onChange={v=>change('tds',v)}/>
       </div></Card>
       <Card className="control-card"><div className="card-heading"><div><div className="eyebrow">02 · PV/T & TAMPON</div><h2>Refroidissement et récupération</h2><p>Surface active et débit du circuit thermique.</p></div><span className="soft-tag amber-tag">PV/T</span></div><div className="range-grid">
-       <RangeField label="Surface active PV/T" value={x.pvtArea} min={50} max={3000} step={10} unit="m²" onChange={v=>change('pvtArea',v)}/><RangeField label="Débit circuit PV/T" value={x.pvtFlow} min={.5} max={30} step={.1} unit="m³/h" onChange={v=>change('pvtFlow',v)}/><RangeField label="Consigne température sortie PV/T" value={x.pvtTargetOutlet} min={25} max={60} step={.5} unit="°C" onChange={v=>change('pvtTargetOutlet',v)}/><RangeField label="Niveau initial tampon" value={x.tankLevel} min={0} max={x.tankCapacity} step={.5} unit="m³" onChange={v=>change('tankLevel',v)}/><RangeField label="Capacité réservoir" value={x.tankCapacity} min={5} max={150} unit="m³" onChange={v=>setX(p=>({...p,tankCapacity:v,tankLevel:Math.min(p.tankLevel,v)}))}/>
+       <RangeField label="Surface active PV/T" value={x.pvtArea} min={50} max={3000} step={10} unit="m²" onChange={v=>change('pvtArea',v)}/><RangeField label="Part thermique récupérée (hyp.)" value={x.thermalRecovery} min={10} max={60} unit="%" onChange={v=>change('thermalRecovery',v)}/><RangeField label="Rendement électrique PV (hyp.)" value={x.pvEfficiency} min={10} max={28} step={.5} unit="%" onChange={v=>change('pvEfficiency',v)}/><RangeField label="Débit circuit PV/T" value={x.pvtFlow} min={.5} max={30} step={.1} unit="m³/h" onChange={v=>change('pvtFlow',v)}/><RangeField label="Consigne température sortie PV/T" value={x.pvtTargetOutlet} min={25} max={60} step={.5} unit="°C" onChange={v=>change('pvtTargetOutlet',v)}/><RangeField label="Niveau initial tampon" value={x.tankLevel} min={0} max={x.tankCapacity} step={.5} unit="m³" onChange={v=>change('tankLevel',v)}/><RangeField label="Capacité réservoir" value={x.tankCapacity} min={5} max={150} unit="m³" onChange={v=>setX(p=>({...p,tankCapacity:v,tankLevel:Math.min(p.tankLevel,v)}))}/>
       </div></Card>
       <Card className="control-card"><div className="card-heading"><div><div className="eyebrow">03 · OSMOSE INVERSE</div><h2>Alimentation des membranes</h2><p>Débit, taux de récupération et rejet salin supposé.</p></div><span className="soft-tag cyan-tag">RO</span></div><div className="range-grid">
        <RangeField label="Consigne alimentation RO" value={x.roFeed} min={.5} max={30} step={.1} unit="m³/h" onChange={v=>change('roFeed',v)}/><RangeField label="Taux de récupération" value={x.recovery} min={20} max={80} unit="%" onChange={v=>change('recovery',v)}/><RangeField label="Rejet salin membrane (hyp.)" value={x.rejection} min={90} max={99.8} step={.1} unit="%" onChange={v=>change('rejection',v)}/><RangeField label="Consigne température RO" value={x.roTempSetpoint} min={15} max={40} step={.5} unit="°C" info="Consigne de scénario, pas une limite constructeur." onChange={v=>change('roTempSetpoint',v)}/><RangeField label="Perméat vers eau potable" value={x.potableShare} min={50} max={100} unit="%" onChange={v=>change('potableShare',v)}/>
