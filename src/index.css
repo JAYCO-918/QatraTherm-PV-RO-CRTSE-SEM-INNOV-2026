@@ -364,6 +364,9 @@ button { cursor: pointer; }
  .results-card { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; }
  .results-card .eyebrow,.results-card h2,.result-hint,.reset-button,.export-wide,.results-disclaimer { grid-column: 1 / -1; }
  .process-timeline { column-gap: 15px; }
+ .guide-layout { grid-template-columns: 220px minmax(0,1fr); }
+ .guide-actions { align-items: flex-start; flex-direction: column; }
+ .guide-step-buttons { width: 100%; justify-content: space-between; }
 }
 @media (max-width: 720px) {
  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; height: 100dvh; transform: translateX(-105%); transition: transform .22s ease; width: 270px; }
@@ -403,6 +406,19 @@ button { cursor: pointer; }
  .results-card { display: block; }
  .method-grid { grid-template-columns: 1fr 1fr; row-gap: 18px; }
  .page-footer { align-items: flex-start; flex-direction: column; }
+ .guide-layout { grid-template-columns: 1fr; }
+ .guide-index { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+ .guide-index > .eyebrow,.guide-index-note { grid-column: 1 / -1; }
+ .guide-index-note { margin-top: 8px; }
+ .guide-intro { padding: 17px; }
+ .guide-lesson { padding: 17px; }
+ .guide-intro-main { align-items: flex-start; }
+ .guide-intro h2 { font-size: 16px; }
+ .guide-bottom-tip { align-items: flex-start; flex-direction: column; }
+ .guide-bottom-tip button { padding: 0; }
+ .guide-actions { gap: 10px; }
+ .guide-explore { width: 100%; justify-content: center; }
+ .guide-step-buttons button { flex: 1; justify-content: center; }
 }
 @media (max-width: 390px) {
  .metrics-grid { grid-template-columns: 1fr; }
