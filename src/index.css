@@ -284,6 +284,69 @@ button { cursor: pointer; }
 .temperature-gap strong { color: #bd8131; font: 700 12px "JetBrains Mono",monospace; }
 .temperature-gap span { color: #9aa6af; }
 
+
+/* Guided product walkthrough */
+.guide-intro { padding: 22px 24px 18px; background: linear-gradient(115deg,#f3faf9 0%,#ffffff 62%,#f7faff 100%); border-color: #dcece9; }
+.guide-intro-main { display: flex; gap: 15px; align-items: center; }
+.guide-intro-icon { flex: 0 0 48px; height: 48px; display: grid; place-items: center; border-radius: 13px; color: #238e83; background: #e2f5f0; border: 1px solid #d3eee7; }
+.guide-intro h2 { color: #20394c; font: 700 19px "Plus Jakarta Sans",sans-serif; letter-spacing: -.4px; margin: 0; }
+.guide-intro p { color: #768b98; font-size: 10px; line-height: 1.6; margin: 6px 0 0; max-width: 760px; }
+.guide-progress-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; color: #7b909d; font-size: 9px; }
+.guide-progress-header strong { color: #348b80; font: 700 10px "JetBrains Mono",monospace; }
+.guide-progress { height: 5px; margin-top: 8px; background: #e5efee; border-radius: 20px; overflow: hidden; }
+.guide-progress i { display: block; height: 100%; background: linear-gradient(90deg,#42b7a2,#4e9bc4); border-radius: 20px; transition: width .2s ease; }
+.guide-layout { display: grid; grid-template-columns: 270px minmax(0,1fr); align-items: start; gap: 16px; }
+.guide-index { padding: 15px 12px; }
+.guide-index > .eyebrow { padding: 0 8px; margin-bottom: 10px; }
+.guide-index-item { display: flex; width: 100%; align-items: center; gap: 10px; padding: 10px 9px; border: 1px solid transparent; border-radius: 8px; background: transparent; text-align: left; position: relative; transition: background .15s,border-color .15s; }
+.guide-index-item:hover { background: #f7fafc; }
+.guide-index-item.current { background: #f0f8f7; border-color: #dcefeb; }
+.guide-index-number { flex: 0 0 27px; width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; background: #f0f3f6; color: #8494a1; font: 700 9px "JetBrains Mono",monospace; }
+.guide-index-item.current .guide-index-number { color: #fff; background: #319c91; }
+.guide-index-item:not(.current) .guide-index-number svg { color: #319c91; }
+.guide-index-copy { min-width: 0; flex: 1; }
+.guide-index-copy strong { display: block; color: #526777; font-size: 9px; font-weight: 600; line-height: 1.35; }
+.guide-index-item.current .guide-index-copy strong { color: #26766f; }
+.guide-index-copy small { display: block; margin-top: 3px; color: #9aa7b1; font-size: 8px; }
+.guide-index-active { width: 5px; height: 5px; border-radius: 50%; background: #36ad9d; }
+.guide-index-note { display: flex; align-items: flex-start; gap: 7px; margin: 14px 4px 0; padding: 10px 8px; border-top: 1px solid #edf1f4; color: #8d9ba6; font-size: 8px; line-height: 1.5; }
+.guide-index-note svg { flex: 0 0 auto; color: #6b9d95; }
+.guide-lesson { padding: 22px 24px 20px; }
+.guide-lesson-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.guide-step-label { display: inline-flex; align-items: center; gap: 8px; color: #94a2ad; font-size: 8px; font-weight: 600; letter-spacing: .6px; }
+.guide-step-label > span { color: #318c81; font: 700 9px "JetBrains Mono",monospace; }
+.guide-step-label > i { width: 4px; height: 4px; border-radius: 50%; background: #b5c3cb; }
+.guide-lesson-badge { padding: 5px 8px; border-radius: 5px; background: #f2f7fa; color: #8295a3; font-size: 7px; letter-spacing: .8px; font-weight: 700; }
+.guide-lesson-icon { display: grid; place-items: center; width: 45px; height: 45px; border-radius: 12px; margin-top: 20px; background: #edf8f6; color: #299889; }
+.guide-lesson h2 { margin: 12px 0 7px; color: #1e3447; font: 700 20px "Plus Jakarta Sans",sans-serif; letter-spacing: -.5px; }
+.guide-summary { color: #718493; font-size: 10px; line-height: 1.7; max-width: 760px; margin: 0; }
+.guide-points { margin-top: 22px; }
+.guide-points h3 { color: #42596b; font: 700 11px "Plus Jakarta Sans",sans-serif; margin: 0 0 9px; }
+.guide-point { display: flex; align-items: flex-start; gap: 11px; padding: 10px 0; border-top: 1px solid #eff2f5; }
+.guide-point > span { flex: 0 0 23px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 6px; background: #f2f6f8; color: #7191a3; font: 600 8px "JetBrains Mono",monospace; }
+.guide-point p { color: #667c8c; font-size: 9px; line-height: 1.6; margin: 2px 0 0; }
+.guide-takeaway { padding: 12px 14px; margin-top: 13px; border-left: 3px solid #3aa796; border-radius: 0 7px 7px 0; background: #f1faf7; }
+.guide-takeaway > span { display: block; color: #349183; font-size: 7px; font-weight: 700; letter-spacing: 1px; }
+.guide-takeaway p { color: #52766e; font-size: 9px; line-height: 1.55; margin: 5px 0 0; }
+.guide-caution { display: flex; gap: 9px; align-items: flex-start; padding: 11px 12px; margin-top: 10px; border: 1px solid #f0e8d8; background: #fffbf4; border-radius: 7px; }
+.guide-caution svg { color: #b68a46; flex: 0 0 auto; }
+.guide-caution p { color: #917d5d; font-size: 8px; line-height: 1.55; margin: 0; }
+.guide-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; padding-top: 15px; border-top: 1px solid #edf1f4; }
+.guide-explore { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #d7e9e6; background: #f4fbf9; color: #287f76; border-radius: 7px; padding: 9px 12px; font-size: 9px; font-weight: 700; }
+.guide-explore:hover { background: #eaf7f3; }
+.guide-step-buttons { display: flex; align-items: center; gap: 7px; }
+.guide-prev,.guide-next { display: inline-flex; align-items: center; gap: 5px; border-radius: 7px; padding: 9px 11px; font-size: 9px; font-weight: 700; }
+.guide-prev { background: #fff; border: 1px solid #e1e8ed; color: #718391; }
+.guide-prev:disabled { opacity: .4; cursor: not-allowed; }
+.guide-next { color: #fff; background: #236c76; border: 1px solid #236c76; }
+.guide-next:hover { background: #1d5962; }
+.guide-export-example { display: flex; align-items: center; gap: 7px; border: 0; background: transparent; color: #377e9e; padding: 12px 0 0; font-size: 9px; font-weight: 700; }
+.guide-bottom-tip { display: flex; gap: 13px; align-items: center; padding: 13px 15px; border: 1px solid #e2eaf0; border-radius: 9px; background: #f9fbfd; }
+.guide-bottom-tip > div { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; color: #398f82; font-size: 9px; }
+.guide-bottom-tip p { flex: 1; color: #7f8f9b; font-size: 8px; line-height: 1.5; margin: 0; }
+.guide-bottom-tip button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #607f91; font-size: 8px; font-weight: 700; white-space: nowrap; }
+.guide-bottom-tip button:hover { color: #246f7c; }
+
 @media (max-width: 1250px) {
  .sidebar { width: 225px; flex-basis: 225px; }
  .page-content { padding-left: 24px; padding-right: 24px; }
