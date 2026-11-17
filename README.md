@@ -1,40 +1,51 @@
-# QatraTherm — Jumeau numérique exploratoire
+# QatraTherm — Jumeau numérique conceptuel
 
-**Projet candidat au challenge SEM'INNOV 2026 · CRTSE / Incubateur MATENG**
+**Candidature SEM’INNOV 2026 · CRTSE / Incubateur MATENG**
 
-> **État du projet.** QatraTherm est actuellement un concept en cours d'étude accompagné d'un prototype logiciel. Aucun pilote intégré n'a été construit ou validé sur site. Les résultats affichés par les simulateurs sont des résultats de modèles dépendant des paramètres saisis ; ils ne constituent pas des mesures expérimentales.
+> **Statut :** concept en cours d’étude accompagné d’un prototype interactif. Aucun pilote intégré n’a été construit ou validé sur site. L’application distingue les hypothèses modifiables des résultats simulés ; aucune valeur par défaut ne constitue une mesure de Tendla.
 
-## 1. Référence actuelle du projet
+## 1. Architecture de référence
 
-Le dossier français de référence décrit l'architecture actuellement étudiée :
+Le dossier français Notion est la source de vérité pour le concept QatraTherm :
 
-1. Captage et prétraitement de l'eau souterraine.
-2. Récupération thermique et refroidissement de panneaux photovoltaïques compatibles (PV/T).
-3. Réservoir tampon et alimentation régulée de l'osmose inverse (RO).
-4. Séparation du perméat et du concentrat.
-5. Traitement final et contrôle qualité de l'eau destinée à l'usage potable.
-6. Étude d'une seconde branche du perméat vers un collecteur solaire à concentration, une production de vapeur et une turbine-génératrice.
-7. Étude de la gestion du concentrat par bassins d'évaporation solaire et de la nature des sels potentiellement récupérables.
-8. Supervision intelligente des flux, avec protections et interverrouillages indépendants.
+1. Captage et prétraitement de l’eau souterraine.
+2. Circulation de l’eau prétraitée dans des canaux thermiques à l’arrière de modules photovoltaïques compatibles (PV/T), pour refroidissement et récupération de chaleur.
+3. Réservoir tampon pour absorber les variations de débit.
+4. Pompe de régulation pour alimenter l’osmose inverse (RO) à débit contrôlé, avec surveillance et correction éventuelle de la température.
+5. Séparation du perméat et du concentrat.
+6. Répartition du perméat entre une voie eau potable (traitement final, contrôle et stockage) et une voie solaire thermique (collecteur à concentration, vaporisation, turbine-générateur).
+7. Acheminement du concentrat vers des bassins d’évaporation solaire pour étudier la cristallisation éventuelle.
+8. Supervision intelligente des flux, avec protections et interverrouillages indépendants de l’IA.
 
-**Dossier technique de référence :** [QatraTherm — Dossier de projet | SEM'INNOV 2026](https://app.notion.com/p/41af1da33a6d81d698daeb5bee1f6231?pvs=204)
+**Cas d’étude proposé :** pilote de 1 MWp à Tendla, wilaya d’El Meghaïer. Cette base de dimensionnement n’implique aucune autorisation d’accès ni validation de ressource.
 
-## 2. À propos du code de ce dépôt
+**Dossier de référence :** [QatraTherm — Dossier de projet | SEM’INNOV 2026](https://app.notion.com/p/41af1da33a6d81d698daeb5bee1f6231?pvs=204)
 
-Ce dépôt contient une application exploratoire construite avec React, TypeScript et Vite. Le prototype logiciel comprend des écrans de simulation, des paramètres modifiables, des calculs de scénarios et des visualisations autour du couplage PV/T–RO.
+## 2. Application actuelle
 
-**Important :** certaines fonctions et hypothèses présentes dans le code proviennent d'une version exploratoire antérieure (notamment ERD, batterie et MPC). Elles ne doivent pas être considérées comme des éléments validés de l'architecture actuelle décrite dans le dossier français. Le code ne représente pas encore un jumeau numérique validé de l'ensemble du procédé actuel, en particulier de la branche solaire thermique avec turbine et de la filière d'évaporation du concentrat.
+Le front-end actif est construit avec React, TypeScript et Vite. L’interface a été réorientée vers l’architecture de référence :
+
+- Vue d’ensemble avec synoptique des flux d’eau et sorties du procédé.
+- Répartition du perméat entre eau potable et branche solaire thermique.
+- Vue détaillée des étapes de procédé, incluant la gestion du concentrat.
+- Paramètres modifiables pour les conditions solaires, PV/T, RO, collecteur solaire, turbine et bassins.
+- Visualisation de deux boucles de régulation proposées : débit PV/T et alimentation RO / réservoir tampon.
+- Export CSV des paramètres et résultats du scénario.
+- Vue de validation qui distingue hypothèses, résultats simulés et données à obtenir.
+
+Le modèle numérique embarqué est une **estimation simplifiée de présélection**. Il ne constitue ni un modèle fournisseur, ni un cycle thermodynamique complet, ni un système de commande industrielle. Le bilan turbine est brut et ne déduit pas les consommations auxiliaires. La cristallisation et la qualité potable ne sont pas validées par l’application.
+
+Des anciens fichiers de prototype restent présents dans l’historique du dépôt et certains répertoires sources ; ils ne sont plus importés par le point d’entrée actuel `src/App.tsx`. Ne pas les utiliser comme description de l’architecture courante.
 
 ## 3. Statut des résultats
 
-- Les valeurs issues des profils prédéfinis sont des **scénarios simulés** ; leurs données d'entrée doivent être documentées et vérifiées.
-- Les gains de production PV, économies d'énergie, volumes d'eau, coûts, temps de retour et indicateurs économiques ne sont **pas des performances mesurées**.
-- Aucune conformité à une norme de potabilité n'est garantie par le seul résultat de simulation.
-- Le dimensionnement réel nécessite au minimum les fiches des panneaux et membranes retenus, une analyse complète de l'eau, un essai de pompage, les données météorologiques du site et les devis fournisseurs.
+- Les valeurs initiales sont des hypothèses de démonstration modifiables, pas des données mesurées à Tendla.
+- Les résultats sont produits par les équations simplifiées de l’application et dépendent des paramètres choisis.
+- La conformité de l’eau potable nécessite le traitement final et des analyses de laboratoire.
+- Le dimensionnement réel nécessite au minimum les fiches des modules PV/T et membranes, une analyse complète de l’eau, un essai de pompage, des données météorologiques locales, des courbes fabricant du collecteur et de la turbine, et des devis fournisseurs.
+- Les protections, arrêts d’urgence et interverrouillages doivent être conçus séparément ; l’interface ne pilote aucune installation réelle.
 
-Ne pas présenter des résultats de scénarios comme des mesures de terrain ou comme des performances garanties.
-
-## 4. Lancer le prototype localement
+## 4. Lancer localement
 
 Prérequis : Node.js et npm.
 
@@ -43,24 +54,19 @@ npm install
 npm run dev
 ```
 
-Vite affiche ensuite l'adresse locale à ouvrir dans le navigateur. Pour générer la version de production :
+Pour construire la version de production :
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## 5. Ressources de candidature
+## 5. Ressources
 
-- **Dossier technique français :** [ouvrir le dossier Notion](https://app.notion.com/p/41af1da33a6d81d698daeb5bee1f6231?pvs=204)
-- **Dossier technique de calcul :** fichier Excel séparé, avec équations, unités, références et statut des données.
-- **Business plan :** document PDF séparé pour la candidature.
-- **Application :** ce dépôt contient le code source du prototype exploratoire.
-
-## 6. Accessibilité avant évaluation
-
-À la date de préparation du dossier, le dépôt GitHub est configuré en **privé**. Il ne sera pas consultable par le jury via un lien public tant que son propriétaire ne l'aura pas rendu public ou n'aura pas accordé l'accès aux évaluateurs. Le dossier Notion doit également être partagé avec les évaluateurs avant diffusion.
+- [Dossier technique français (Notion)](https://app.notion.com/p/41af1da33a6d81d698daeb5bee1f6231?pvs=204)
+- Business plan PDF et classeur Excel de calcul : fichiers séparés préparés pour le dossier de candidature.
+- Ce dépôt : code source du prototype de jumeau numérique.
 
 ---
 
-**Principe de rigueur :** distinguer systématiquement les données vérifiées, les calculs reproductibles, les hypothèses et les données manquantes. Toute performance annoncée doit être accompagnée de ses entrées, de son équation et de sa source.
+**Règle de présentation :** distinguer systématiquement données mesurées, hypothèses, résultats simulés et éléments à valider. Aucune performance n’est garantie par le prototype.
