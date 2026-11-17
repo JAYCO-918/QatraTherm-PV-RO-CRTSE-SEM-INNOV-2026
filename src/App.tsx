@@ -42,7 +42,7 @@ function model(x:Inputs) {
   const steam = Math.min(potentialSteam,thermalFeed*1000);
   const turbine = steam*x.turbineWork*x.generatorEfficiency/100/3600;
   return {
-    heat,delta,outlet,cellRaw,cellCooled,pv,permeate,brine,permeateTds,brineTds,
+    heat,delta,outlet,roFeed:x.roFeed,cellRaw,cellCooled,pv,permeate,brine,permeateTds,brineTds,
     potable,thermalFeed,solarHeat,potentialSteam,steam,turbine,
     brineDaily:brine*24,evapDaily:x.pondArea*x.evaporation/1000,
     tankDelta:x.pvtFlow-x.roFeed,thermalFeedLimited:thermalFeed*1000<potentialSteam
@@ -146,7 +146,7 @@ export default function App() {
        <div className="tank-summary"><div className="tank-shell"><div className="tank-fill" style={{height:clamp(x.tankLevel/x.tankCapacity*100,0,100)+'%'}}/><span>{fmt(x.tankLevel,1)}</span></div><div><strong>{fmt(x.tankLevel/x.tankCapacity*100,0)} %</strong><span>Niveau initial du scénario</span><p>Entrée PV/T : {fmt(x.pvtFlow,1)} m³/h<br/>Sortie RO : {fmt(x.roFeed,1)} m³/h</p><em>Variation théorique : {(r.tankDelta>=0?'+':'')+fmt(r.tankDelta,2)} m³/h</em></div></div>
       </Card>
      </div>
-     <div className="quick-control"><div><div className="eyebrow">AJUSTEMENT RAPIDE</div><strong>Répartition du perméat</strong><p>Modifiez la part réservée à l’eau potable.</p></div><RangeField label="Part du perméat vers l’eau potable" value={x.potableShare} min={50} max={100} unit="%" onChange={v=>change('potableShare',v)}/><button className="link-button" onClick={()=>changeView('controls')}>Tous les paramètres <ArrowUpRight size={15}/></button></div>
+     <div className="quick-control"><div><div className="eyebrow">AJUSTEMENT RAPIDE</div><strong>Répartition du perméat</strong><p>Modifiez la part réservée à l’eau potable.</p></div><RangeField label="Part du perméat vers l’eau potable" value={x.potableShare} min={0} max={100} unit="%" onChange={v=>change('potableShare',v)}/><button className="link-button" onClick={()=>changeView('controls')}>Tous les paramètres <ArrowUpRight size={15}/></button></div>
     </div>}
 
     {view==='process'&&<div className="view-stack">
